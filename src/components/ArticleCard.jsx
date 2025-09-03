@@ -30,8 +30,8 @@ function ArticleCard({ article }) {
           </Badge>
         </HStack>
         
-        <Badge colorScheme="blue" variant="solid">
-          API Artikel
+        <Badge colorScheme={article.isLocal ? "purple" : "blue"} variant="solid">
+          {article.isLocal ? "Min artikel" : "API Artikel"}
         </Badge>
       </HStack>
     </Box>

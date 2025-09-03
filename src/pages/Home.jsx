@@ -2,50 +2,78 @@ import { useState, useEffect } from "react";
 import { Container, Heading, VStack } from "@chakra-ui/react";
 import axios from "axios";
 import ArticleCard from "../components/ArticleCard";
+import NewArticleForm from "../components/NewArticleForm";
 
 function Home() {
-    const [articles, setArticles] = useState([])
-    const [loading, setLoading] = useState(true)
+  const [apiArticles, setApiArticles] = useState([])
+  const [localArticles, setLocalArticles] = useState([])
+  const [loading, setLoading] = useState(true)
 
-    useEffect(() => {
-        fetchArticles()
-    }, [])
+  useEffect(() => {
+    fetchArticles()
+    loadLocalArticles()
+  }, [])
 
-    const fetchArticles = async () => { 
-        try {
-            const response = await axios.get("https://dummyjson.com/posts")
-            setArticles(response.data.posts)
-            setLoading(false)
-        } catch (error) {
-            console.error("Fel vid hämtning av artiklar: ", error)
-            setLoading(false)
-        }
+  const fetchArticles = async () => {
+    try {
+      const response = await axios.get("https://dummyjson.com/posts")
+      setApiArticles(response.data.posts)
+      setLoading(false)
+    } catch (error) {
+      console.error("Fel vid hämtning av artiklar:", error)
+      setLoading(false)
     }
+  }
 
-    if (loading) {
-        return (
-            <Container maxW="6xl" py={8}>
-                <Heading>Laddar artiklar...</Heading>
-            </Container>
-        );
+  const loadLocalArticles = () => {
+    const saved = localStorage.getItem("localArticles")
+    if (saved) {
+      setLocalArticles(JSON.parse(saved))
     }
+  }
 
+  const saveLocalArticles = (articles) => {
+    localStorage.setItem("localArticles", JSON.stringify(articles))
+  }
+
+  const handleAddArticle = (newArticle) => {
+    const updatedLocalArticles = [newArticle, ...localArticles]
+    setLocalArticles(updatedLocalArticles)
+    saveLocalArticles(updatedLocalArticles)
+    
+    // TODO: Visa toast-meddelande här senare
+    alert("Artikel skapad!")
+  }
+
+  // Kombinera alla artiklar (lokala först, sedan API)
+  const allArticles = [...localArticles, ...apiArticles]
+
+  if (loading) {
     return (
-        <Container maxW="6xl" py={8}>
-            <Heading mb={6} textAlign="center">
-            Nyhetssida
-            </Heading>
-
-            <VStack spacing={4}>
-                {articles.map((article) => (
-                    <ArticleCard
-                    key={article.id}
-                    article={article}
-                    />
-                ))}
-            </VStack>
-        </Container>
+      <Container maxW="6xl" py={8}>
+        <Heading>Laddar artiklar...</Heading>
+      </Container>
     )
+  }
+
+  return (
+    <Container maxW="6xl" py={8}>
+      <Heading mb={6} textAlign="center" color="blue.600">
+        📰 Nyhetssida
+      </Heading>
+      
+      <NewArticleForm onAddArticle={handleAddArticle} />
+      
+      <VStack spacing={4}>
+        {allArticles.map((article) => (
+          <ArticleCard 
+            key={`${article.isLocal ? 'local' : 'api'}-${article.id}`}
+            article={article}
+          />
+        ))}
+      </VStack>
+    </Container>
+  )
 }
 
 export default Home
