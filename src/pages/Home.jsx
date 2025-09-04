@@ -45,6 +45,15 @@ function Home() {
     alert("Artikel skapad!")
   }
 
+  const handleDeleteArticle = (articleId) => {
+    const updatedLocalArticles = localArticles.filter(article => article.id !== articleId)
+    setLocalArticles(updatedLocalArticles)
+    saveLocalArticles(updatedLocalArticles)
+
+        alert("Artikel raderad!")
+
+  }
+
   // Kombinera alla artiklar (lokala först, sedan API)
   const allArticles = [...localArticles, ...apiArticles]
 
@@ -69,6 +78,7 @@ function Home() {
           <ArticleCard 
             key={`${article.isLocal ? 'local' : 'api'}-${article.id}`}
             article={article}
+            onDelete={handleDeleteArticle}
           />
         ))}
       </VStack>
