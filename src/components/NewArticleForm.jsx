@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Box, Button, Input, Textarea, VStack, Heading, Text } from "@chakra-ui/react";
-
+import { toaster } from "./ui/toaster"
+ 
 function NewArticleForm({ onAddArticle }) {
   const [title, setTitle] = useState('')
   const [body, setBody] = useState('')
@@ -10,7 +11,12 @@ function NewArticleForm({ onAddArticle }) {
     e.preventDefault()
     
     if (!title.trim() || !body.trim()) {
-      alert("Både titel och innehåll måste fyllas i")
+      toaster.create({
+        title:"Fel",
+        description:"Både titel och innehåll måste fyllas i",
+        type:"error",
+        duration: 3000,
+      })
       return
     }
 
@@ -31,6 +37,13 @@ function NewArticleForm({ onAddArticle }) {
     setTitle('')
     setBody('')
     setIsSubmitting(false)
+
+    toaster.create({
+        title: "Artikel skapad!",
+        description: `"${newArticle.title}" har lagts till`,
+      type: "success",
+      duration: 3000,
+    })
   }
 
   return (
@@ -73,7 +86,7 @@ function NewArticleForm({ onAddArticle }) {
 
           <Button
             type="submit"
-            colorScheme="blue"
+            colorPalette="blue"
             isLoading={isSubmitting}
             loadingText="Skapar artikel..."
             size="lg"

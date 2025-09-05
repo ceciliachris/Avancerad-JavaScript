@@ -30,27 +30,26 @@ function ArticleCard({ article, onDelete }) {
         
         <HStack justify="space-between" align="center">
           <HStack spacing={3}>
-            <Badge colorScheme="green" variant="subtle">
+            <Badge colorPalette="green" variant="subtle">
               👍 {article.reactions?.likes || 0}
             </Badge>
-            <Badge colorScheme="red" variant="subtle">
+            <Badge colorPalette="red" variant="subtle">
               👎 {article.reactions?.dislikes || 0}
             </Badge>
           </HStack>
           
           <HStack spacing={2}>
-            <Badge colorScheme={article.isLocal ? "purple" : "blue"} variant="solid">
+            <Badge colorPalette={article.isLocal ? "purple" : "blue"} variant="solid">
               {article.isLocal ? "Min artikel" : "API Artikel"}
             </Badge>
             
-            {/* Visa radera-knapp bara för lokala artiklar */}
             {article.isLocal && (
               <Button
                 size="sm"
-                colorScheme="red"
-                variant="outline"
+                colorPalette="red"
+                variant="solid"
                 onClick={(e) => {
-                  e.stopPropagation() // Förhindra att kort-klick triggas
+                  e.stopPropagation()
                   handleDelete()
                 }}
               >

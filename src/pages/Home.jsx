@@ -3,11 +3,13 @@ import { Container, Heading, VStack } from "@chakra-ui/react";
 import axios from "axios";
 import ArticleCard from "../components/ArticleCard";
 import NewArticleForm from "../components/NewArticleForm";
+import { toaster } from "../components/ui/toaster"
 
 function Home() {
   const [apiArticles, setApiArticles] = useState([])
   const [localArticles, setLocalArticles] = useState([])
   const [loading, setLoading] = useState(true)
+  
 
   useEffect(() => {
     fetchArticles()
@@ -41,20 +43,22 @@ function Home() {
     setLocalArticles(updatedLocalArticles)
     saveLocalArticles(updatedLocalArticles)
     
-    // TODO: Visa toast-meddelande här senare
-    alert("Artikel skapad!")
   }
 
-  const handleDeleteArticle = (articleId) => {
-    const updatedLocalArticles = localArticles.filter(article => article.id !== articleId)
+   const handleDeleteArticle = (articleId) => {
+    const articleToDelete = localArticles.find((a) => a.id === articleId)
+    const updatedLocalArticles = localArticles.filter((a) => a.id !== articleId)
     setLocalArticles(updatedLocalArticles)
     saveLocalArticles(updatedLocalArticles)
 
-        alert("Artikel raderad!")
-
+    toaster.create({
+      title: "Artikel raderad! 🗑️",
+      description: `"${articleToDelete?.title}" har tagits bort`,
+      type: "error",
+      duration: 3000,
+    })
   }
 
-  // Kombinera alla artiklar (lokala först, sedan API)
   const allArticles = [...localArticles, ...apiArticles]
 
   if (loading) {
