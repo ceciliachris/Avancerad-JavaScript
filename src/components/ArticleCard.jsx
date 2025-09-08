@@ -1,11 +1,14 @@
 import { Box, Heading, Text, HStack, Badge, Button, VStack } from '@chakra-ui/react'
+import { useNavigate } from 'react-router-dom'
 
 function ArticleCard({ article, onDelete }) {
+    const navigate = useNavigate();
+
   const handleDelete = () => {
-    if (window.confirm('Är du säker på att du vill radera denna artikel?')) {
+    if (window.confirm("Är du säker på att du vill radera denna artikel?")) {
       onDelete(article.id)
     }
-  }
+  };
 
   return (
     <Box
@@ -18,13 +21,14 @@ function ArticleCard({ article, onDelete }) {
       _hover={{ shadow: "lg", transform: "translateY(-2px)" }}
       transition="all 0.2s"
       cursor="pointer"
+      onClick={() => navigate(`/article/${article.id}`)}
     >
       <VStack align="stretch" spacing={3}>
         <Heading size="md" color="gray.800">
           {article.title}
         </Heading>
         
-        <Text color="gray.600" lineHeight="1.6">
+        <Text color="gray.600" lineHeight="1.6" noOfLines={2}>
           {article.body}
         </Text>
         
