@@ -51,12 +51,29 @@ function Home() {
     setLocalArticles(updatedLocalArticles)
     saveLocalArticles(updatedLocalArticles)
 
+
     toaster.create({
       title: "Artikel raderad! 🗑️",
       description: `"${articleToDelete?.title}" har tagits bort`,
       type: "error",
       duration: 3000,
     })
+  };
+
+  const handleLikeArticle = (articleId) => {
+    const updatedLocalArticles = localArticles.map((a) =>
+      a.id === articleId ? { ...a, likes: (a.likes || 0) + 1 } : a
+    )
+    setLocalArticles(updatedLocalArticles)
+    saveLocalArticles(updatedLocalArticles)
+  }
+
+  const handleDislikeArticle = (articleId) => {
+    const updatedLocalArticles = localArticles.map((a) =>
+      a.id === articleId ? { ...a, dislikes: (a.dislikes || 0) + 1 } : a
+    )
+    setLocalArticles(updatedLocalArticles)
+    saveLocalArticles(updatedLocalArticles)
   }
 
   const allArticles = [...localArticles, ...apiArticles]
@@ -83,6 +100,8 @@ function Home() {
             key={`${article.isLocal ? 'local' : 'api'}-${article.id}`}
             article={article}
             onDelete={handleDeleteArticle}
+            onLike={handleLikeArticle}
+            onDislike={handleDislikeArticle}
           />
         ))}
       </VStack>
