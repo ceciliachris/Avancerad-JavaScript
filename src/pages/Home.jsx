@@ -4,6 +4,7 @@ import axios from "axios";
 import ArticleCard from "../components/ArticleCard";
 import NewArticleForm from "../components/NewArticleForm";
 import { toaster } from "../components/ui/toaster"
+import { updateLocalArticleLikes } from "../utils/articleUtils";
 
 function Home() {
   const [apiArticles, setApiArticles] = useState([])
@@ -60,21 +61,47 @@ function Home() {
     })
   };
 
-  const handleLikeArticle = (articleId) => {
-    const updatedLocalArticles = localArticles.map((a) =>
-      a.id === articleId ? { ...a, likes: (a.likes || 0) + 1 } : a
-    )
-    setLocalArticles(updatedLocalArticles)
-    saveLocalArticles(updatedLocalArticles)
+  const handleLikeArticle = (articleId, isLocal) => {
+  if (isLocal) {
+    const updatedArticle = updateLocalArticleLikes(articleId, true);
+    if (updatedArticle) {
+      // Uppdatera state med den nya artikeln
+      const updatedLocalArticles = localArticles.map(a => 
+        a.id === articleId ? updatedArticle : a
+      );
+      setLocalArticles(updatedLocalArticles);
+    }
+  } else {
+    // API artiklar - samma som innan
+    const updatedApi = apiArticles.map((a) =>
+      a.id === articleId
+        ? { ...a, reactions: { ...a.reactions, likes: (a.reactions?.likes || 0) + 1 } }
+        : a
+    );
+    setApiArticles(updatedApi);
   }
+};
 
-  const handleDislikeArticle = (articleId) => {
-    const updatedLocalArticles = localArticles.map((a) =>
-      a.id === articleId ? { ...a, dislikes: (a.dislikes || 0) + 1 } : a
-    )
-    setLocalArticles(updatedLocalArticles)
-    saveLocalArticles(updatedLocalArticles)
+const handleDislikeArticle = (articleId, isLocal) => {
+  if (isLocal) {
+    const updatedArticle = updateLocalArticleLikes(articleId, false);
+    if (updatedArticle) {
+      // Uppdatera state med den nya artikeln
+      const updatedLocalArticles = localArticles.map(a => 
+        a.id === articleId ? updatedArticle : a
+      );
+      setLocalArticles(updatedLocalArticles);
+    }
+  } else {
+    // API artiklar - samma som innan
+    const updatedApi = apiArticles.map((a) =>
+      a.id === articleId
+        ? { ...a, reactions: { ...a.reactions, dislikes: (a.reactions?.dislikes || 0) + 1 } }
+        : a
+    );
+    setApiArticles(updatedApi);
   }
+};
 
   const allArticles = [...localArticles, ...apiArticles]
 

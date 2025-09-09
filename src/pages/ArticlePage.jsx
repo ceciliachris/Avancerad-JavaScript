@@ -1,34 +1,63 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { Container, Heading, Text, HStack, Button, VStack, Badge } from "@chakra-ui/react";
-import { useEffect, useState } from "react";
-import axios from "axios";
+import { Container, HStack, Button, VStack, Badge, Spinner, Text } from "@chakra-ui/react";
+import { useArticle } from "../components/hooks/useArticle";
+import { updateLocalArticleLikes } from "../utils/articleUtils";
+import ArticleContent from "../components/ArticleContent";
+import LikeDislikeButtons from "../components/LikeDisLikeButtons";
 
 function ArticlePage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [article, setArticle] = useState(null);
+  const { article, isLocal, loading, setArticle } = useArticle(id);
 
-  useEffect(() => {
-    const saved = localStorage.getItem("localArticles");
-    if (saved) {
-      const localArticles = JSON.parse(saved);
-      const foundLocal = localArticles.find((a) => String(a.id) === id);
-      if (foundLocal) {
-        setArticle(foundLocal);
-        return;
+  const handleLike = () => {
+    if (isLocal) {
+      const updatedArticle = updateLocalArticleLikes(id, true);
+      if (updatedArticle) {
+        setArticle(updatedArticle);
       }
+    } else {
+      setArticle(prev => ({
+        ...prev,
+        reactions: {
+          ...prev.reactions,
+          likes: (prev.reactions?.likes || 0) + 1
+        }
+      }));
     }
+  };
 
-    axios.get(`https://dummyjson.com/posts/${id}`)
-      .then((res) => setArticle(res.data))
-      .catch(() => setArticle(null));
-  }, [id]);
+  const handleDislike = () => {
+    if (isLocal) {
+      const updatedArticle = updateLocalArticleLikes(id, false);
+      if (updatedArticle) {
+        setArticle(updatedArticle);
+      }
+    } else {
+      setArticle(prev => ({
+        ...prev,
+        reactions: {
+          ...prev.reactions,
+          dislikes: (prev.reactions?.dislikes || 0) + 1
+        }
+      }));
+    }
+  };
+
+  if (loading) {
+    return (
+      <Container py={8} textAlign="center">
+        <Spinner size="xl" color="blue.500" />
+        <Text mt={4}>Laddar artikel...</Text>
+      </Container>
+    );
+  }
 
   if (!article) {
     return (
-      <Container py={8}>
-        <Heading>Artikeln hittades inte</Heading>
-        <Button mt={4} onClick={() => navigate("/")}>
+      <Container py={8} textAlign="center">
+        <Text fontSize="xl" mb={4}>Artikeln hittades inte</Text>
+        <Button onClick={() => navigate("/")}>
           Tillbaka hem
         </Button>
       </Container>
@@ -37,16 +66,25 @@ function ArticlePage() {
 
   return (
     <Container maxW="4xl" py={8}>
-      <VStack align="stretch" spacing={6}>
-        <Heading color="blue.600">{article.title}</Heading>
-        <Text>{article.body}</Text>
+      <VStack spacing={8}>
+        <ArticleContent article={article} />
+        
+        <LikeDislikeButtons 
+          article={article} 
+          isLocal={isLocal}
+          onLike={handleLike}
+          onDislike={handleDislike}
+        />
 
-        <HStack spacing={4}>
-          <Badge colorScheme="green">👍 {article.reactions?.likes || 0}</Badge>
-          <Badge colorScheme="red">👎 {article.reactions?.dislikes || 0}</Badge>
+        <HStack justify="center">
+          <Badge colorPalette={isLocal ? "purple" : "blue"} variant="solid" size="lg">
+            {isLocal ? "Min artikel" : "API Artikel"}
+          </Badge>
         </HStack>
 
-        <Button onClick={() => navigate("/")}>⬅️ Tillbaka</Button>
+        <Button onClick={() => navigate("/")} size="lg" variant="outline">
+          ⬅️ Tillbaka till startsidan
+        </Button>
       </VStack>
     </Container>
   );

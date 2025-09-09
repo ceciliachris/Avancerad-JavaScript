@@ -44,9 +44,7 @@ function ArticleCard({ article, onDelete, onLike, onDislike }) {
                             variant="subtle"
                             onClick={(e) => {
                                 e.stopPropagation();
-                                if (article.isLocal) {
-                                    onLike?.(article.id);
-                                }
+                                onLike?.(article.id, article.isLocal);
                             }}
                         >
                             👍 {article.likes ?? article.reactions?.likes ?? 0}
@@ -58,9 +56,7 @@ function ArticleCard({ article, onDelete, onLike, onDislike }) {
                             variant="subtle"
                             onClick={(e) => {
                                 e.stopPropagation();
-                                if (article.isLocal) {
-                                    onDislike?.(article.id);
-                                }
+                                onDislike?.(article.id, article.isLocal);
                             }}
                         >
                             👎 {article.dislikes ?? article.reactions?.dislikes ?? 0}
