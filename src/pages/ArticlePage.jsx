@@ -2,46 +2,22 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Container, HStack, Button, VStack, Badge, Spinner, Text } from "@chakra-ui/react";
 import { useArticle } from "../components/hooks/useArticle";
 import { updateLocalArticleLikes } from "../utils/articleUtils";
+import useArticleStore from "../store/articleStore";
 import ArticleContent from "../components/ArticleContent";
 import LikeDislikeButtons from "../components/LikeDisLikeButtons";
 
 function ArticlePage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { article, isLocal, loading, setArticle } = useArticle(id);
+  const { article, isLocal, loading } = useArticle(id);
+  const { likeArticle, dislikeArticle } = useArticleStore(); // ← NY RAD
 
   const handleLike = () => {
-    if (isLocal) {
-      const updatedArticle = updateLocalArticleLikes(id, true);
-      if (updatedArticle) {
-        setArticle(updatedArticle);
-      }
-    } else {
-      setArticle(prev => ({
-        ...prev,
-        reactions: {
-          ...prev.reactions,
-          likes: (prev.reactions?.likes || 0) + 1
-        }
-      }));
-    }
+    likeArticle(parseInt(id), isLocal); // ← ENKLARE!
   };
 
   const handleDislike = () => {
-    if (isLocal) {
-      const updatedArticle = updateLocalArticleLikes(id, false);
-      if (updatedArticle) {
-        setArticle(updatedArticle);
-      }
-    } else {
-      setArticle(prev => ({
-        ...prev,
-        reactions: {
-          ...prev.reactions,
-          dislikes: (prev.reactions?.dislikes || 0) + 1
-        }
-      }));
-    }
+    dislikeArticle(parseInt(id), isLocal); // ← ENKLARE!
   };
 
   if (loading) {

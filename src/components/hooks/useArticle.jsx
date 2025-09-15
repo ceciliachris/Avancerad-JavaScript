@@ -1,31 +1,30 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import useArticleStore from "../../store/articleStore";
 
 export const useArticle = (id) => {
-  const [article, setArticle] = useState(null);
-  const [isLocal, setIsLocal] = useState(false);
   const [loading, setLoading] = useState(true);
+  const { getArticleById } = useArticleStore();
+
+  // Hämta från Zustand store först
+  const { article: storeArticle, isLocal } = getArticleById(id);
+  const [article, setArticle] = useState(storeArticle);
 
   useEffect(() => {
     const fetchArticle = async () => {
       setLoading(true);
       
-      const saved = localStorage.getItem("localArticles");
-      if (saved) {
-        const localArticles = JSON.parse(saved);
-        const foundLocal = localArticles.find((a) => String(a.id) === id);
-        if (foundLocal) {
-          setArticle(foundLocal);
-          setIsLocal(true);
-          setLoading(false);
-          return;
-        }
+      // Om artikeln finns i store, använd den
+      if (storeArticle) {
+        setArticle(storeArticle);
+        setLoading(false);
+        return;
       }
 
+      // Annars hämta från API
       try {
         const response = await axios.get(`https://dummyjson.com/posts/${id}`);
         setArticle(response.data);
-        setIsLocal(false);
       } catch (error) {
         setArticle(null);
       }
@@ -33,7 +32,7 @@ export const useArticle = (id) => {
     };
 
     fetchArticle();
-  }, [id]);
+  }, [id, storeArticle]);
 
   return { article, isLocal, loading, setArticle };
 };

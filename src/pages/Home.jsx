@@ -3,114 +3,73 @@ import { Container, Heading, VStack } from "@chakra-ui/react";
 import axios from "axios";
 import ArticleCard from "../components/ArticleCard";
 import NewArticleForm from "../components/NewArticleForm";
-import { toaster } from "../components/ui/toaster"
-import { updateLocalArticleLikes } from "../utils/articleUtils";
+import { toaster } from "../components/ui/toaster";
+import useArticleStore from "../store/articleStore";
 
 function Home() {
-  const [apiArticles, setApiArticles] = useState([])
-  const [localArticles, setLocalArticles] = useState([])
-  const [loading, setLoading] = useState(true)
-  
+  const {
+    apiArticles,
+    localArticles,
+    loading,
+    setApiArticles,
+    setLoading,
+    addLocalArticle,
+    deleteLocalArticle,
+    likeArticle,
+    dislikeArticle,
+    loadLocalArticles,
+    getAllArticles
+  } = useArticleStore();
 
   useEffect(() => {
-    fetchArticles()
-    loadLocalArticles()
-  }, [])
+    fetchArticles();
+    loadLocalArticles();
+  }, []);
 
   const fetchArticles = async () => {
+    setLoading(true);
     try {
-      const response = await axios.get("https://dummyjson.com/posts")
-      setApiArticles(response.data.posts)
-      setLoading(false)
+      const response = await axios.get("https://dummyjson.com/posts");
+      setApiArticles(response.data.posts);
+      setLoading(false);
     } catch (error) {
-      console.error("Fel vid hämtning av artiklar:", error)
-      setLoading(false)
+      console.error("Fel vid hämtning av artiklar:", error);
+      setLoading(false);
     }
-  }
-
-  const loadLocalArticles = () => {
-    const saved = localStorage.getItem("localArticles")
-    if (saved) {
-      setLocalArticles(JSON.parse(saved))
-    }
-  }
-
-  const saveLocalArticles = (articles) => {
-    localStorage.setItem("localArticles", JSON.stringify(articles))
-  }
+  };
 
   const handleAddArticle = (newArticle) => {
-    const updatedLocalArticles = [newArticle, ...localArticles]
-    setLocalArticles(updatedLocalArticles)
-    saveLocalArticles(updatedLocalArticles)
-    
-  }
+    addLocalArticle(newArticle);
+  };
 
-   const handleDeleteArticle = (articleId) => {
-    const articleToDelete = localArticles.find((a) => a.id === articleId)
-    const updatedLocalArticles = localArticles.filter((a) => a.id !== articleId)
-    setLocalArticles(updatedLocalArticles)
-    saveLocalArticles(updatedLocalArticles)
-
+  const handleDeleteArticle = (articleId) => {
+    const articleToDelete = localArticles.find((a) => a.id === articleId);
+    deleteLocalArticle(articleId);
 
     toaster.create({
       title: "Artikel raderad! 🗑️",
       description: `"${articleToDelete?.title}" har tagits bort`,
       type: "error",
       duration: 3000,
-    })
+    });
   };
 
   const handleLikeArticle = (articleId, isLocal) => {
-  if (isLocal) {
-    const updatedArticle = updateLocalArticleLikes(articleId, true);
-    if (updatedArticle) {
-      // Uppdatera state med den nya artikeln
-      const updatedLocalArticles = localArticles.map(a => 
-        a.id === articleId ? updatedArticle : a
-      );
-      setLocalArticles(updatedLocalArticles);
-    }
-  } else {
-    // API artiklar - samma som innan
-    const updatedApi = apiArticles.map((a) =>
-      a.id === articleId
-        ? { ...a, reactions: { ...a.reactions, likes: (a.reactions?.likes || 0) + 1 } }
-        : a
-    );
-    setApiArticles(updatedApi);
-  }
-};
+    likeArticle(articleId, isLocal);
+  };
 
-const handleDislikeArticle = (articleId, isLocal) => {
-  if (isLocal) {
-    const updatedArticle = updateLocalArticleLikes(articleId, false);
-    if (updatedArticle) {
-      // Uppdatera state med den nya artikeln
-      const updatedLocalArticles = localArticles.map(a => 
-        a.id === articleId ? updatedArticle : a
-      );
-      setLocalArticles(updatedLocalArticles);
-    }
-  } else {
-    // API artiklar - samma som innan
-    const updatedApi = apiArticles.map((a) =>
-      a.id === articleId
-        ? { ...a, reactions: { ...a.reactions, dislikes: (a.reactions?.dislikes || 0) + 1 } }
-        : a
-    );
-    setApiArticles(updatedApi);
-  }
-};
+  const handleDislikeArticle = (articleId, isLocal) => {
+    dislikeArticle(articleId, isLocal);
+  };
 
-  const allArticles = [...localArticles, ...apiArticles]
+  const allArticles = getAllArticles();
 
   if (loading) {
     return (
       <Container maxW="6xl" py={8}>
         <Heading>Laddar artiklar...</Heading>
       </Container>
-    )
+    );
   }
 
   return (
@@ -133,7 +92,7 @@ const handleDislikeArticle = (articleId, isLocal) => {
         ))}
       </VStack>
     </Container>
-  )
+  );
 }
 
-export default Home
+export default Home;
