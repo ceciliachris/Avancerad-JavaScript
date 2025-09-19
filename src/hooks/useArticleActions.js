@@ -1,17 +1,13 @@
-import { useState, useEffect } from "react";
-import { Container, Heading } from "@chakra-ui/react";
+import { useEffect } from "react";
 import axios from "axios";
-import NewArticleForm from "../components/NewArticleForm";
-import ArticleList from "../components/ArticleList";
 import { toaster } from "../components/ui/toaster";
 import useArticleStore from "../store/articleStore";
-import { MESSAGES, UI_LABELS, TOAST_CONFIG } from "../constants";
+import { MESSAGES, TOAST_CONFIG } from "../constants";
 
-function Home() {
+export const useArticleActions = () => {
   const {
     getAllArticles,
     getLocalArticles,
-    loading,
     setApiArticles,
     setLoading,
     addLocalArticle,
@@ -19,6 +15,7 @@ function Home() {
     likeArticle,
     dislikeArticle,
     loadLocalArticles,
+    loading
   } = useArticleStore();
 
   useEffect(() => {
@@ -43,6 +40,8 @@ function Home() {
     setLoading(false);
   };
 
+   // Add new local article with success toast
+
   const handleAddArticle = (newArticle) => {
     addLocalArticle(newArticle);
     
@@ -55,11 +54,16 @@ function Home() {
     });
   };
 
+
+   // Delete local article with success toast
+   
   const handleDeleteArticle = (articleId) => {
     const localArticles = getLocalArticles();
     const articleToDelete = localArticles.find((a) => a.id === articleId);
+    
     deleteLocalArticle(articleId);
 
+    // Success toast with deleted article title
     toaster.create({
       title: MESSAGES.SUCCESS.ARTICLE_DELETED,
       description: `"${articleToDelete?.title}" har tagits bort`,
@@ -76,32 +80,13 @@ function Home() {
     dislikeArticle(articleId, isLocal);
   };
 
-  const allArticles = getAllArticles();
-
-  if (loading) {
-    return (
-      <Container maxW="6xl" py={8}>
-        <Heading>{MESSAGES.LOADING.ARTICLES}</Heading>
-      </Container>
-    );
-  }
-
-  return (
-    <Container maxW="6xl" py={8}>
-      <Heading mb={6} textAlign="center" color="blue.600">
-        {UI_LABELS.SITE_TITLE}
-      </Heading>
-      
-      <NewArticleForm onAddArticle={handleAddArticle} />
-      
-      <ArticleList 
-        articles={allArticles}
-        onDelete={handleDeleteArticle}
-        onLike={handleLikeArticle}
-        onDislike={handleDislikeArticle}
-      />
-    </Container>
-  );
-}
-
-export default Home;
+  return {
+    articles: getAllArticles(),
+    loading,
+    handleAddArticle,
+    handleDeleteArticle,
+    handleLikeArticle,
+    handleDislikeArticle,
+    refetchArticles: fetchArticles
+  };
+};

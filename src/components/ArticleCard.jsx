@@ -1,11 +1,12 @@
 import { Box, Heading, Text, HStack, Badge, Button, VStack } from '@chakra-ui/react'
 import { useNavigate } from 'react-router-dom'
+import { MESSAGES, UI_LABELS } from '../constants'
 
 function ArticleCard({ article, onDelete, onLike, onDislike }) {
     const navigate = useNavigate();
 
     const handleDelete = () => {
-        if (window.confirm("Är du säker på att du vill radera denna artikel?")) {
+        if (window.confirm(MESSAGES.CONFIRMATION.DELETE_ARTICLE)) {
             onDelete(article.id)
         }
     };
@@ -65,7 +66,7 @@ function ArticleCard({ article, onDelete, onLike, onDislike }) {
 
                     <HStack spacing={2}>
                         <Badge colorPalette={article.isLocal ? "purple" : "blue"} variant="solid">
-                            {article.isLocal ? "Min artikel" : "API Artikel"}
+                            {article.isLocal ? UI_LABELS.LOCAL_ARTICLE : UI_LABELS.API_ARTICLE}
                         </Badge>
 
                         {article.isLocal && (
@@ -78,7 +79,7 @@ function ArticleCard({ article, onDelete, onLike, onDislike }) {
                                     handleDelete()
                                 }}
                             >
-                                🗑️ Radera
+                                {UI_LABELS.DELETE_BUTTON}
                             </Button>
                         )}
                     </HStack>

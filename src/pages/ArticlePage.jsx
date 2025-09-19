@@ -1,38 +1,39 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { Container, HStack, Button, VStack, Badge, Spinner, Text } from "@chakra-ui/react";
-import { useArticle } from "../components/hooks/useArticle";
-import { updateLocalArticleLikes } from "../utils/articleUtils";
+import { useArticle } from "../hooks/useArticle";
 import useArticleStore from "../store/articleStore";
 import ArticleContent from "../components/ArticleContent";
 import LikeDislikeButtons from "../components/LikeDisLikeButtons";
+import { MESSAGES, UI_LABELS } from "../constants";
 
 function ArticlePage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { article, isLocal, loading } = useArticle(id);
-  const { likeArticle, dislikeArticle } = useArticleStore(); // ← NY RAD
+  const { likeArticle, dislikeArticle } = useArticleStore();
 
   const handleLike = () => {
-    likeArticle(parseInt(id), isLocal); // ← ENKLARE!
+    likeArticle(parseInt(id), isLocal);
   };
 
   const handleDislike = () => {
-    dislikeArticle(parseInt(id), isLocal); // ← ENKLARE!
+    dislikeArticle(parseInt(id), isLocal);
   };
 
   if (loading) {
     return (
       <Container py={8} textAlign="center">
         <Spinner size="xl" color="blue.500" />
-        <Text mt={4}>Laddar artikel...</Text>
+        <Text mt={4}>{MESSAGES.ERRORS.LOADING_ARTICLE}</Text>
       </Container>
     );
   }
 
+  // Article not found
   if (!article) {
     return (
       <Container py={8} textAlign="center">
-        <Text fontSize="xl" mb={4}>Artikeln hittades inte</Text>
+        <Text fontSize="xl" mb={4}>{MESSAGES.ERRORS.ARTICLE_NOT_FOUND}</Text>
         <Button onClick={() => navigate("/")}>
           Tillbaka hem
         </Button>
@@ -54,12 +55,12 @@ function ArticlePage() {
 
         <HStack justify="center">
           <Badge colorPalette={isLocal ? "purple" : "blue"} variant="solid" size="lg">
-            {isLocal ? "Min artikel" : "API Artikel"}
+            {isLocal ? UI_LABELS.LOCAL_ARTICLE : UI_LABELS.API_ARTICLE}
           </Badge>
         </HStack>
 
         <Button onClick={() => navigate("/")} size="lg" variant="outline">
-          ⬅️ Tillbaka till startsidan
+          {MESSAGES.NAVIGATION.BACK_TO_HOME}
         </Button>
       </VStack>
     </Container>

@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import useArticleStore from "../../store/articleStore";
+import useArticleStore from "../store/articleStore";
 
 export const useArticle = (id) => {
   const [loading, setLoading] = useState(true);
   const { getArticleById } = useArticleStore();
 
-  // Hämta från Zustand store först
+  // Get article from Zustand store first
   const { article: storeArticle, isLocal } = getArticleById(id);
   const [article, setArticle] = useState(storeArticle);
 
@@ -14,18 +14,19 @@ export const useArticle = (id) => {
     const fetchArticle = async () => {
       setLoading(true);
       
-      // Om artikeln finns i store, använd den
+      // If article exists in store, use it
       if (storeArticle) {
         setArticle(storeArticle);
         setLoading(false);
         return;
       }
 
-      // Annars hämta från API
+      // Otherwise fetch from API
       try {
         const response = await axios.get(`https://dummyjson.com/posts/${id}`);
         setArticle(response.data);
       } catch (error) {
+        console.error('Error fetching article:', error);
         setArticle(null);
       }
       setLoading(false);

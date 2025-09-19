@@ -1,5 +1,6 @@
 import { Box, Container, Heading, HStack } from '@chakra-ui/react'
 import { Link, useLocation } from 'react-router-dom'
+import { UI_LABELS, MESSAGES } from '../constants'
 
 function Navbar() {
   const location = useLocation()
@@ -10,7 +11,7 @@ function Navbar() {
         <HStack justify="space-between" align="center">
           <Link to="/">
             <Heading size="lg" cursor="pointer" _hover={{ color: "blue.200" }}>
-              📰 Nyhetssida
+              {UI_LABELS.SITE_TITLE}
             </Heading>
           </Link>
           
@@ -25,7 +26,7 @@ function Navbar() {
                 cursor="pointer"
                 fontWeight="medium"
               >
-                Hem
+                {MESSAGES.NAVIGATION.HOME}
               </Box>
             </Link>
           </HStack>

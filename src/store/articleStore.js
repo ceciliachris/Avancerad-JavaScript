@@ -1,89 +1,117 @@
 import { create } from 'zustand'
+import { ArticleNormalizer } from '../utils/ArticleNormalizer'
 
 const useArticleStore = create((set, get) => ({
-  apiArticles: [],
-  localArticles: [],
+  articles: [],
   loading: false,
   
-  setApiArticles: (articles) => set({ apiArticles: articles }),
-  
-  setLocalArticles: (articles) => set({ localArticles: articles }),
+  setApiArticles: (articles) => {
+    const normalizedArticles = ArticleNormalizer.normalizeArray(articles, false)
+    set(state => ({
+      articles: [
+        ...state.articles.filter(a => a.isLocal), // Keep local articles
+        ...normalizedArticles // Add normalized API articles
+      ]
+    }))
+  },
   
   setLoading: (loading) => set({ loading }),
   
   addLocalArticle: (article) => {
-    const { localArticles } = get()
-    const newLocalArticles = [article, ...localArticles]
-    set({ localArticles: newLocalArticles })
-    localStorage.setItem("localArticles", JSON.stringify(newLocalArticles))
+    const normalizedArticle = ArticleNormalizer.normalize(article, true)
+    set(state => ({ 
+      articles: [normalizedArticle, ...state.articles] 
+    }))
+    // Centralized localStorage handling
+    get()._saveLocalArticles()
   },
   
   deleteLocalArticle: (articleId) => {
-    const { localArticles } = get()
-    const updatedLocalArticles = localArticles.filter((a) => a.id !== articleId)
-    set({ localArticles: updatedLocalArticles })
-    localStorage.setItem("localArticles", JSON.stringify(updatedLocalArticles))
+    set(state => ({
+      articles: state.articles.filter(a => !(a.id === articleId && a.isLocal))
+    }))
+    // Centralized localStorage handling
+    get()._saveLocalArticles()
   },
   
   likeArticle: (articleId, isLocal) => {
+    set(state => ({
+      articles: state.articles.map(article => 
+        article.id === articleId && article.isLocal === isLocal
+          ? ArticleNormalizer.updateReactions(article, 'likes', 1)
+          : article
+      )
+    }))
+    
+    // Save to localStorage only for local articles
     if (isLocal) {
-      const { localArticles } = get()
-      const updatedLocal = localArticles.map((a) =>
-        a.id === articleId ? { ...a, likes: (a.likes || 0) + 1 } : a
-      )
-      set({ localArticles: updatedLocal })
-      localStorage.setItem("localArticles", JSON.stringify(updatedLocal))
-    } else {
-      const { apiArticles } = get()
-      const updatedApi = apiArticles.map((a) =>
-        a.id === articleId
-          ? { ...a, reactions: { ...a.reactions, likes: (a.reactions?.likes || 0) + 1 } }
-          : a
-      )
-      set({ apiArticles: updatedApi })
+      get()._saveLocalArticles()
     }
   },
   
   dislikeArticle: (articleId, isLocal) => {
+    set(state => ({
+      articles: state.articles.map(article => 
+        article.id === articleId && article.isLocal === isLocal
+          ? ArticleNormalizer.updateReactions(article, 'dislikes', 1)
+          : article
+      )
+    }))
+    
+    // Save to localStorage only for local articles
     if (isLocal) {
-      const { localArticles } = get()
-      const updatedLocal = localArticles.map((a) =>
-        a.id === articleId ? { ...a, dislikes: (a.dislikes || 0) + 1 } : a
-      )
-      set({ localArticles: updatedLocal })
-      localStorage.setItem("localArticles", JSON.stringify(updatedLocal))
-    } else {
-      const { apiArticles } = get()
-      const updatedApi = apiArticles.map((a) =>
-        a.id === articleId
-          ? { ...a, reactions: { ...a.reactions, dislikes: (a.reactions?.dislikes || 0) + 1 } }
-          : a
-      )
-      set({ apiArticles: updatedApi })
+      get()._saveLocalArticles()
     }
   },
   
   loadLocalArticles: () => {
-    const saved = localStorage.getItem("localArticles")
-    if (saved) {
-      set({ localArticles: JSON.parse(saved) })
+    try {
+      const saved = localStorage.getItem("localArticles")
+      if (saved) {
+        const localArticles = JSON.parse(saved)
+        const normalizedArticles = ArticleNormalizer.normalizeArray(localArticles, true)
+        set(state => ({
+          articles: [
+            ...normalizedArticles,
+            ...state.articles.filter(a => !a.isLocal) // Keep API articles
+          ]
+        }))
+      }
+    } catch (error) {
+      console.error('Error loading local articles:', error)
+    }
+  },
+  
+  // Method for saving local articles to localStorage
+  _saveLocalArticles: () => {
+    try {
+      const { articles } = get()
+      const localArticles = articles.filter(a => a.isLocal)
+      localStorage.setItem("localArticles", JSON.stringify(localArticles))
+    } catch (error) {
+      console.error('Error saving local articles:', error)
     }
   },
   
   getAllArticles: () => {
-    const { localArticles, apiArticles } = get()
-    return [...localArticles, ...apiArticles]
+    const { articles } = get()
+    return articles
+  },
+  
+  getLocalArticles: () => {
+    const { articles } = get()
+    return articles.filter(a => a.isLocal)
+  },
+  
+  getApiArticles: () => {
+    const { articles } = get()
+    return articles.filter(a => !a.isLocal)
   },
   
   getArticleById: (id) => {
-    const { localArticles, apiArticles } = get()
-    const localArticle = localArticles.find((a) => String(a.id) === String(id))
-    if (localArticle) return { article: localArticle, isLocal: true }
-    
-    const apiArticle = apiArticles.find((a) => String(a.id) === String(id))
-    if (apiArticle) return { article: apiArticle, isLocal: false }
-    
-    return { article: null, isLocal: false }
+    const { articles } = get()
+    const article = articles.find(a => String(a.id) === String(id))
+    return article ? { article, isLocal: article.isLocal } : { article: null, isLocal: false }
   }
 }))
 

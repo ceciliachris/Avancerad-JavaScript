@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Box, Button, Input, Textarea, VStack, Heading, Text } from "@chakra-ui/react";
 import { toaster } from "./ui/toaster"
+import { MESSAGES, UI_LABELS, TOAST_CONFIG } from "../constants"
  
 function NewArticleForm({ onAddArticle }) {
   const [title, setTitle] = useState('')
@@ -10,12 +11,13 @@ function NewArticleForm({ onAddArticle }) {
   const handleSubmit = async (e) => {
     e.preventDefault()
     
+    // Form validation - only show error toast here
     if (!title.trim() || !body.trim()) {
       toaster.create({
-        title:"Fel",
-        description:"Både titel och innehåll måste fyllas i",
-        type:"error",
-        duration: 3000,
+        title: "Fel",
+        description: MESSAGES.ERRORS.FORM_VALIDATION,
+        type: "error",
+        duration: TOAST_CONFIG.DURATION,
       })
       return
     }
@@ -33,17 +35,15 @@ function NewArticleForm({ onAddArticle }) {
       isLocal: true
     }
 
+    // Let parent handle the toast notification for success
     onAddArticle(newArticle)
+    
+    // Reset form
     setTitle('')
     setBody('')
     setIsSubmitting(false)
 
-    toaster.create({
-        title: "Artikel skapad!",
-        description: `"${newArticle.title}" har lagts till`,
-      type: "success",
-      duration: 3000,
-    })
+    // NO SUCCESS TOAST HERE - parent component handles it
   }
 
   return (
@@ -56,28 +56,28 @@ function NewArticleForm({ onAddArticle }) {
       borderRadius="lg"
     >
       <Heading size="md" mb={4} color="blue.700">
-        ✍️ Skapa ny artikel
+        {UI_LABELS.CREATE_ARTICLE}
       </Heading>
       
       <Box as="form" onSubmit={handleSubmit}>
         <VStack spacing={4}>
           <Box w="100%">
-            <Text mb={2} fontWeight="bold">Titel *</Text>
+            <Text mb={2} fontWeight="bold">{UI_LABELS.TITLE_REQUIRED}</Text>
             <Input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Skriv en titel för din artikel..."
+              placeholder={MESSAGES.PLACEHOLDERS.ARTICLE_TITLE}
               bg="white"
               required
             />
           </Box>
 
           <Box w="100%">
-            <Text mb={2} fontWeight="bold">Innehåll *</Text>
+            <Text mb={2} fontWeight="bold">{UI_LABELS.CONTENT_REQUIRED}</Text>
             <Textarea
               value={body}
               onChange={(e) => setBody(e.target.value)}
-              placeholder="Skriv artikelns innehåll..."
+              placeholder={MESSAGES.PLACEHOLDERS.ARTICLE_BODY}
               minH="120px"
               bg="white"
               required
@@ -88,10 +88,10 @@ function NewArticleForm({ onAddArticle }) {
             type="submit"
             colorPalette="blue"
             isLoading={isSubmitting}
-            loadingText="Skapar artikel..."
+            loadingText={MESSAGES.LOADING.CREATING_ARTICLE}
             size="lg"
           >
-            Skapa artikel
+            {UI_LABELS.CREATE_BUTTON}
           </Button>
         </VStack>
       </Box>
